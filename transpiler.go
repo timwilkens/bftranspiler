@@ -5,17 +5,6 @@ import (
 	"io/ioutil"
 )
 
-var tokens = map[rune]string {
-	'>' : "++ptr;\n",
-	'<' : "--ptr;\n",
-	'+' : "++*ptr;\n",
-	'-' : "--*ptr;\n",
-	'.' : "putchar(*ptr);\n",
-	',' : "*ptr = getchar();\n",
-	'[' : "while (*ptr) {\n",
-	']' : "}\n",
-}
-
 var cFile = flag.String("c", "", "output file")
 
 var cHead = `
@@ -49,15 +38,32 @@ func makeCSource(bfSource string) string {
     indentLevel := 1
 
     for _,rune := range bfSource {
-        if c, ok := tokens[rune]; ok {
-            if rune == '[' {
-                indentLevel += 1
-            } else if rune == ']' {
-                indentLevel -= 1
-            }
-            toAdd := addIndent(indentLevel, c)
-            cSource += toAdd
-        }
+		var addC string
+		switch rune {
+		case '>':
+			addC = "++ptr;\n"
+		case '<':
+			addC = "--ptr;\n"
+		case '+':
+			addC = "++*ptr;\n"
+		case '-':
+			addC = "--*ptr;\n"
+		case '.':
+			addC = "putchar(*ptr);\n"
+		case ',':
+			addC = "*ptr = getchar();\n"
+		case '[':
+			addC = "while (*ptr) {\n"
+			indentLevel += 1
+		case ']':
+			addC = "}\n"
+			indentLevel -= 1
+		default:
+			continue
+		}
+
+        toAdd := addIndent(indentLevel, addC)
+        cSource += toAdd
     }
     cSource += cTail
     return cSource
