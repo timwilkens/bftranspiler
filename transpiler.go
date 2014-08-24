@@ -81,6 +81,7 @@ func makeCSource(bfSource string) string {
 	rIter := NewRuneIter(bfSource)
 
     for {
+		indentChange := 0
 		rune,err := rIter.Next()
 		if err != nil {
 			break
@@ -178,7 +179,7 @@ func makeCSource(bfSource string) string {
 			addC = "*ptr = getchar();\n"
 		case '[':
 			addC = "while (*ptr) {\n"
-			indentLevel += 1
+			indentChange = 1
 		case ']':
 			addC = "}\n"
 			indentLevel -= 1
@@ -187,6 +188,7 @@ func makeCSource(bfSource string) string {
 		}
 
         toAdd := addIndent(indentLevel, addC)
+		indentLevel += indentChange
         cSource += toAdd
     }
     cSource += cTail
