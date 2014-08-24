@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"io/ioutil"
+	"strconv"
 )
 
 type RuneIter struct {
@@ -29,14 +30,14 @@ func NewRuneIter(s string) RuneIter {
 }
 
 func (r *RuneIter) Peek() (rune, error) {
-	if r.cur + 1 > r.size {
+	if r.cur + 1 > r.size - 1 {
 		return 'a', &IterError{"No more elements"}
 	}
-	return r.runes[r.cur + 1], nil
+	return r.runes[r.cur], nil
 }
 
 func (r *RuneIter) Next() (rune, error) {
-	if r.cur + 1 > r.size {
+	if r.cur + 1 > r.size - 1{
 		return 'a', &IterError{"No more elements"}
 	}
 	n := r.runes[r.cur]
@@ -87,13 +88,90 @@ func makeCSource(bfSource string) string {
 		var addC string
 		switch rune {
 		case '>':
-			addC = "++ptr;\n"
+			num := 1
+            for {
+                peeked, err := rIter.Peek()
+                if err != nil {
+                    break // End of the bf.
+                }
+                if peeked == '>' {
+                    num += 1
+                } else {
+                    break // No match on next character.
+                }
+                _, _ = rIter.Next() // This won't fail if peek was fine.
+            }
+
+            if num == 1 {
+                addC = "++ptr;\n"
+            } else {
+                addC = "ptr += " + strconv.Itoa(num) + ";\n"
+            }
+
 		case '<':
-			addC = "--ptr;\n"
+
+			num := 1
+            for {
+                peeked, err := rIter.Peek()
+                if err != nil {
+                    break // End of the bf.
+                }
+                if peeked == '<' {
+                    num += 1
+                } else {
+                    break // No match on next character.
+                }
+                _, _ = rIter.Next() // This won't fail if peek was fine.
+            }
+
+            if num == 1 {
+                addC = "--ptr;\n"
+            } else {
+                addC = "ptr -= " + strconv.Itoa(num) + ";\n"
+            }
+
 		case '+':
-			addC = "++*ptr;\n"
+			num := 1
+			for {
+				peeked, err := rIter.Peek()
+				if err != nil {
+					break // End of the bf.
+				}
+				if peeked == '+' {
+					num += 1
+				} else {
+					break // No match on next character.
+				}
+				_, _ = rIter.Next() // This won't fail if peek was fine.
+			}
+
+			if num == 1 {
+				addC = "++*ptr;\n"
+			} else {
+				addC = "*ptr += " + strconv.Itoa(num) + ";\n"
+			}
+
 		case '-':
-			addC = "--*ptr;\n"
+			num := 1
+            for {
+                peeked, err := rIter.Peek()
+                if err != nil {
+                    break // End of the bf.
+                }
+                if peeked == '-' {
+                    num += 1
+                } else {
+                    break // No match on next character.
+                }
+                _, _ = rIter.Next() // This won't fail if peek was fine.
+            }
+
+            if num == 1 {
+                addC = "--*ptr;\n"
+            } else {
+                addC = "*ptr -= " + strconv.Itoa(num) + ";\n"
+            }
+
 		case '.':
 			addC = "putchar(*ptr);\n"
 		case ',':
