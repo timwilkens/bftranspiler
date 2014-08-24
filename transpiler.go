@@ -23,28 +23,27 @@ func (e *IterError) Error() string {
 
 func NewRuneIter(s string) RuneIter {
 	runes := make([]rune, 0)
-	for _,r := range s {
+	for _, r := range s {
 		runes = append(runes, r)
 	}
 	return RuneIter{runes, 0, len(runes)}
 }
 
 func (r *RuneIter) Peek() (rune, error) {
-	if r.cur + 1 > r.size - 1 {
+	if r.cur+1 > r.size-1 {
 		return 'a', &IterError{"No more elements"}
 	}
 	return r.runes[r.cur], nil
 }
 
 func (r *RuneIter) Next() (rune, error) {
-	if r.cur + 1 > r.size - 1{
+	if r.cur+1 > r.size-1 {
 		return 'a', &IterError{"No more elements"}
 	}
 	n := r.runes[r.cur]
 	r.cur += 1
 	return n, nil
 }
-
 
 var cFile = flag.String("c", "", "output file")
 
@@ -66,23 +65,23 @@ var cTail = `
 var indent = `  `
 
 func addIndent(indentLevel int, s string) string {
-    var indented string
-    for i := 0; i < indentLevel; i++ {
-        indented += indent
-    }
-    indented += s
-    return indented
+	var indented string
+	for i := 0; i < indentLevel; i++ {
+		indented += indent
+	}
+	indented += s
+	return indented
 }
 
 func makeCSource(bfSource string) string {
-    cSource := cHead
-    indentLevel := 1
+	cSource := cHead
+	indentLevel := 1
 
 	rIter := NewRuneIter(bfSource)
 
-    for {
+	for {
 		indentChange := 0
-		rune,err := rIter.Next()
+		rune, err := rIter.Next()
 		if err != nil {
 			break
 		}
@@ -90,46 +89,46 @@ func makeCSource(bfSource string) string {
 		switch rune {
 		case '>':
 			num := 1
-            for {
-                peeked, err := rIter.Peek()
-                if err != nil {
-                    break // End of the bf.
-                }
-                if peeked == '>' {
-                    num += 1
-                } else {
-                    break // No match on next character.
-                }
-                _, _ = rIter.Next() // This won't fail if peek was fine.
-            }
+			for {
+				peeked, err := rIter.Peek()
+				if err != nil {
+					break // End of the bf.
+				}
+				if peeked == '>' {
+					num += 1
+				} else {
+					break // No match on next character.
+				}
+				_, _ = rIter.Next() // This won't fail if peek was fine.
+			}
 
-            if num == 1 {
-                addC = "++ptr;\n"
-            } else {
-                addC = "ptr += " + strconv.Itoa(num) + ";\n"
-            }
+			if num == 1 {
+				addC = "++ptr;\n"
+			} else {
+				addC = "ptr += " + strconv.Itoa(num) + ";\n"
+			}
 
 		case '<':
 
 			num := 1
-            for {
-                peeked, err := rIter.Peek()
-                if err != nil {
-                    break // End of the bf.
-                }
-                if peeked == '<' {
-                    num += 1
-                } else {
-                    break // No match on next character.
-                }
-                _, _ = rIter.Next() // This won't fail if peek was fine.
-            }
+			for {
+				peeked, err := rIter.Peek()
+				if err != nil {
+					break // End of the bf.
+				}
+				if peeked == '<' {
+					num += 1
+				} else {
+					break // No match on next character.
+				}
+				_, _ = rIter.Next() // This won't fail if peek was fine.
+			}
 
-            if num == 1 {
-                addC = "--ptr;\n"
-            } else {
-                addC = "ptr -= " + strconv.Itoa(num) + ";\n"
-            }
+			if num == 1 {
+				addC = "--ptr;\n"
+			} else {
+				addC = "ptr -= " + strconv.Itoa(num) + ";\n"
+			}
 
 		case '+':
 			num := 1
@@ -154,24 +153,24 @@ func makeCSource(bfSource string) string {
 
 		case '-':
 			num := 1
-            for {
-                peeked, err := rIter.Peek()
-                if err != nil {
-                    break // End of the bf.
-                }
-                if peeked == '-' {
-                    num += 1
-                } else {
-                    break // No match on next character.
-                }
-                _, _ = rIter.Next() // This won't fail if peek was fine.
-            }
+			for {
+				peeked, err := rIter.Peek()
+				if err != nil {
+					break // End of the bf.
+				}
+				if peeked == '-' {
+					num += 1
+				} else {
+					break // No match on next character.
+				}
+				_, _ = rIter.Next() // This won't fail if peek was fine.
+			}
 
-            if num == 1 {
-                addC = "--*ptr;\n"
-            } else {
-                addC = "*ptr -= " + strconv.Itoa(num) + ";\n"
-            }
+			if num == 1 {
+				addC = "--*ptr;\n"
+			} else {
+				addC = "*ptr -= " + strconv.Itoa(num) + ";\n"
+			}
 
 		case '.':
 			addC = "putchar(*ptr);\n"
@@ -187,12 +186,12 @@ func makeCSource(bfSource string) string {
 			continue
 		}
 
-        toAdd := addIndent(indentLevel, addC)
+		toAdd := addIndent(indentLevel, addC)
 		indentLevel += indentChange
-        cSource += toAdd
-    }
-    cSource += cTail
-    return cSource
+		cSource += toAdd
+	}
+	cSource += cTail
+	return cSource
 }
 
 func main() {
@@ -209,12 +208,12 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-    bfString := string(bfSource)
+	bfString := string(bfSource)
 
-    cSource := makeCSource(bfString)
+	cSource := makeCSource(bfString)
 
-    outBytes := []byte(cSource)
-    err = ioutil.WriteFile(*cFile, outBytes, 0644)
+	outBytes := []byte(cSource)
+	err = ioutil.WriteFile(*cFile, outBytes, 0644)
 	if err != nil {
 		panic(err)
 	}
